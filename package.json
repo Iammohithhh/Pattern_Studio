@@ -1,0 +1,10 @@
+{
+  "name": "dp-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-first visual dynamic programming learning companion",
+  "scripts": {
+    "start": "node server.cjs",
+    "check": "node --check dist/app.js && node --check dist/curriculum.js && node --check server.cjs"
+  }
+}
