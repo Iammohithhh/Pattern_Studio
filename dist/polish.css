@@ -1,0 +1,255 @@
+/* Visual polish layer, loaded after style.css and studio.css.
+
+   Deliberately paint-only: color, background, border-color, border-radius,
+   box-shadow, transition, and hover transforms. No grid, flex, position,
+   width, or padding rules live here, so every existing responsive
+   breakpoint keeps the layout it already computes. Delete this file and
+   its <link> to return to the previous look exactly. */
+
+:root{
+  --elev-1:0 1px 2px rgba(21,45,35,.05),0 1px 3px rgba(21,45,35,.04);
+  --elev-2:0 1px 2px rgba(21,45,35,.04),0 6px 16px -6px rgba(21,45,35,.10);
+  --elev-3:0 2px 4px rgba(21,45,35,.05),0 18px 40px -14px rgba(21,45,35,.20);
+  --edge:#e5eae1;
+  --edge-hover:#cedcc4;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- ground ---------- */
+
+body{
+  background:
+    radial-gradient(1150px 640px at 80% -10%,#e9f3df 0%,rgba(233,243,223,0) 60%),
+    radial-gradient(880px 540px at 2% 2%,#eef3ea 0%,rgba(238,243,234,0) 55%),
+    #f4f6f2;
+  background-attachment:fixed;
+}
+
+::selection{background:#d3f591;color:#14342a}
+
+*{scrollbar-color:#c9d5c2 transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:#ccd8c5;border-radius:99px;
+  border:3px solid transparent;background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover{background:#b2c2a9;background-clip:content-box}
+
+/* ---------- frame ---------- */
+
+.sidebar{
+  background:linear-gradient(177deg,#fff 0%,#fdfefc 45%,#f7faf4 100%);
+  border-right:1px solid var(--edge);
+}
+
+.topbar{
+  background:rgba(249,251,247,.82);
+  backdrop-filter:blur(14px) saturate(1.35);
+  -webkit-backdrop-filter:blur(14px) saturate(1.35);
+  border-bottom:1px solid var(--edge);
+}
+
+.nav-item,.category-nav button{
+  border-radius:10px;
+  transition:background .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.nav-item:hover,.category-nav button:hover{background:#f1f6ec;color:#2f5040}
+.nav-item.active{
+  background:linear-gradient(90deg,#e8f2e0,#f3f8ed);
+  color:#1a4a32;
+  box-shadow:inset 3px 0 0 #7cab57;
+}
+.category-nav button.active{
+  background:linear-gradient(90deg,#e8f2e0,#f3f8ed);
+  box-shadow:inset 3px 0 0 #7cab57;
+}
+
+.track-switch button{transition:background .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease)}
+.track-switch button.active{box-shadow:var(--elev-1)}
+
+/* ---------- surfaces ---------- */
+
+.card,.progress-card,.problem-panel,.lab-card,.note-card,.memory-card,
+.topic-card,.category-card,.flash-card,.journey-current,.guides-invitation,
+.mental-model,.question-state,.visualizer,.topic-layout .card{
+  border-color:var(--edge);
+  box-shadow:var(--elev-1);
+}
+
+.continue-card{
+  background:linear-gradient(135deg,#1c4736 0%,#143528 55%,#0f2a20 100%);
+  box-shadow:var(--elev-3);
+}
+
+.category-card,.topic-card,.problem-link,.related-problem{
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease),background .2s var(--ease);
+}
+.category-card:hover,.topic-card:hover,.problem-link:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--elev-2);
+  border-color:var(--edge-hover);
+}
+.related-problem:hover{background:#f3f8ee}
+
+.problem-row{transition:background .16s var(--ease),box-shadow .16s var(--ease)}
+.problem-row:hover{
+  background:linear-gradient(90deg,#f3f8ee,#fbfdf9 70%);
+  box-shadow:inset 3px 0 0 #a5cc81;
+}
+
+/* ---------- controls ---------- */
+
+.btn{
+  border-radius:9px;
+  border-color:var(--edge);
+  box-shadow:var(--elev-1);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease),
+             background .16s var(--ease),border-color .16s var(--ease);
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--elev-2);border-color:var(--edge-hover)}
+.btn:active{transform:translateY(0);box-shadow:var(--elev-1)}
+
+.btn.primary{
+  background:linear-gradient(165deg,#1f4e3b,#132f26);
+  border-color:#132f26;
+  box-shadow:0 1px 2px rgba(19,47,38,.26),0 8px 18px -8px rgba(19,47,38,.48);
+}
+.btn.primary:hover{box-shadow:0 2px 5px rgba(19,47,38,.3),0 14px 26px -10px rgba(19,47,38,.55)}
+
+.btn.lime{
+  background:linear-gradient(165deg,#ddfba3,#c6ef7b);
+  color:#1f3a22;
+  box-shadow:0 1px 2px rgba(116,158,66,.24),0 8px 18px -8px rgba(116,158,66,.44);
+}
+.btn.lime:hover{box-shadow:0 2px 5px rgba(116,158,66,.28),0 14px 26px -10px rgba(116,158,66,.5)}
+
+.tabs button{transition:color .18s var(--ease),border-color .18s var(--ease)}
+.tabs button:hover{color:#3d5c36}
+.tabs button.active{border-color:#5d8d3d}
+
+.approach-tabs button{
+  border-radius:8px;
+  border-color:var(--edge);
+  transition:background .16s var(--ease),color .16s var(--ease),
+             border-color .16s var(--ease),box-shadow .16s var(--ease);
+}
+.approach-tabs button:hover{border-color:var(--edge-hover);background:#f5faf1}
+.approach-tabs button.active{
+  background:linear-gradient(165deg,#1f4e3b,#14342a);
+  color:#eaf7d8;
+  border-color:#14342a;
+  box-shadow:0 6px 14px -6px rgba(20,52,42,.45);
+}
+
+.search{transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
+.search:focus-within{border-color:#a7c98a;box-shadow:0 0 0 3px rgba(146,183,113,.22)}
+
+.notes-input{transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
+.notes-input:focus{border-color:#a7c98a;box-shadow:0 0 0 3px rgba(146,183,113,.18)}
+
+.play-controls button{transition:background .16s var(--ease),border-color .16s var(--ease),box-shadow .16s var(--ease)}
+.play-controls .play{box-shadow:0 6px 16px -7px rgba(20,52,42,.55)}
+
+/* ---------- chips ---------- */
+
+.tag{
+  background:#edf4e6;
+  color:#5b7050;
+  border-radius:999px;
+  font-weight:550;
+  letter-spacing:.01em;
+}
+
+.difficulty{color:#2f7d51;font-weight:650;letter-spacing:.01em}
+.difficulty.Medium{color:#a2670f}
+.difficulty.Hard{color:#ad3a4d}
+
+.pill{box-shadow:var(--elev-1);border-radius:999px}
+.recommended{letter-spacing:.06em}
+
+/* ---------- code ---------- */
+
+.code-wrap{
+  background:linear-gradient(168deg,#182c21,#101f18);
+  border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),var(--elev-2);
+}
+.kw{color:#cfb2f2}
+.str{color:#d7f0a1}
+.num{color:#8fdcc0}
+.comment{color:#6d8a77;font-style:italic}
+
+.example{
+  background:linear-gradient(170deg,#f8faf6,#f3f6ef);
+  border-color:var(--edge);
+  border-radius:9px;
+}
+
+.callout{
+  background:linear-gradient(100deg,#f1f7eb,#f7faf4);
+  border-left-color:#8fb873;
+  border-radius:0 8px 8px 0;
+}
+
+.lesson-copy code{border-radius:5px}
+
+/* ---------- visual lab ---------- */
+
+.trace-line{transition:background .16s var(--ease),box-shadow .16s var(--ease)}
+.trace-line.active{box-shadow:inset 3px 0 0 #c5f378}
+
+.array-cell>strong,.matrix-cell,.node-token,.chain-node{
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s var(--ease);
+}
+.array-cell.pointed>strong{box-shadow:0 0 0 3px rgba(197,243,120,.4),var(--elev-1)}
+.matrix-cell.current{box-shadow:0 0 0 3px rgba(197,243,120,.4)}
+
+.live-var.changed{box-shadow:inset 3px 0 0 #c5f378}
+
+.graph-board circle,.tree-board circle{transition:fill .2s var(--ease),stroke .2s var(--ease)}
+
+/* ---------- flashcards ---------- */
+
+.flash-card{box-shadow:var(--elev-2)}
+
+/* ---------- motion ---------- */
+
+@media (prefers-reduced-motion:reduce){
+  .nav-item,.category-nav button,.category-card,.topic-card,.problem-link,
+  .related-problem,.problem-row,.btn,.tabs button,.approach-tabs button,
+  .search,.notes-input,.play-controls button,.trace-line,.array-cell>strong,
+  .matrix-cell,.node-token,.chain-node,.graph-board circle,.tree-board circle{
+    transition:none;
+  }
+  .category-card:hover,.topic-card:hover,.problem-link:hover,.btn:hover{transform:none}
+}
+
+/* ---------- depth pass ----------
+   Second look: the first elevation values read as flat at full size, and
+   11px corners looked dated next to the rounder chips. Paint only. */
+
+.card,.problem-panel,.progress-card,.lab-card,.topic-layout .card,.visualizer{
+  border-radius:14px;
+  box-shadow:var(--elev-2);
+}
+.category-card,.topic-card,.note-card,.memory-card,.flash-card,
+.journey-current,.guides-invitation,.mental-model,.question-state{
+  border-radius:12px;
+}
+
+.table-head{
+  background:linear-gradient(180deg,#f8fbf6,#f2f6ee);
+  border-bottom:1px solid var(--edge);
+}
+
+.continue-card{
+  background:
+    radial-gradient(520px 230px at 88% -25%,rgba(197,243,120,.15),transparent 70%),
+    linear-gradient(135deg,#1c4736 0%,#143528 55%,#0f2a20 100%);
+}
+
+.brand-mark{box-shadow:0 6px 16px -7px rgba(20,52,42,.55)}
+.category-icon,.topic-heading .category-icon{box-shadow:var(--elev-1)}
+.storage{border-color:var(--edge);border-radius:12px;box-shadow:var(--elev-1)}
+.avatar{box-shadow:var(--elev-1)}
