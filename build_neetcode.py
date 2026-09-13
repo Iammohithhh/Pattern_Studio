@@ -1,5 +1,6 @@
 """Build the licensed NeetCode curriculum plus original teaching metadata."""
 import ast, json, pathlib, re, textwrap
+from neetcode_prose import PROSE
 ROOT=pathlib.Path(__file__).parent
 REF=ROOT/'content/reference'
 CATALOG=[p for p in json.loads((REF/'catalog.json').read_text(encoding='utf-8-sig')) if p.get('neetcode150')]
@@ -12,6 +13,7 @@ def plain(md):
     return md.strip()
 
 def parse(p):
+    number=int(p['code'].split('-')[0])
     raw=(REF/'articles'/(p['code']+'.md')).read_text(encoding='utf-8-sig')
     sections=re.split(r'^## (?=\d+\.)',raw,flags=re.M)
     approaches=[]
@@ -44,7 +46,9 @@ def parse(p):
         complexity=plain(complexity.group(1)) if complexity else ''
         time=re.search(r'[Tt]ime complexity:\s*(.*)',complexity)
         space=re.search(r'[Ss]pace complexity:\s*(.*)',complexity)
-        approaches.append(dict(title=name,code=code,intuition=part('Intuition'),algorithm=part('Algorithm'),complexity=complexity,time=time.group(1) if time else 'See analysis',space=space.group(1) if space else 'See analysis'))
+        # A few articles ship code and complexity but no prose; fall back to authored text.
+        written=PROSE.get((number,name),{})
+        approaches.append(dict(title=name,code=code,intuition=part('Intuition') or written.get('intuition',''),algorithm=part('Algorithm') or written.get('algorithm',''),complexity=complexity,time=time.group(1) if time else 'See analysis',space=space.group(1) if space else 'See analysis'))
     pre=re.search(r'^## Prerequisites\s*\n([\s\S]*?)(?=^## |\Z)',raw,re.M)
     pitfalls=re.search(r'^## Common Pitfalls\s*\n([\s\S]*)',raw,re.M)
     assert approaches,p['code']

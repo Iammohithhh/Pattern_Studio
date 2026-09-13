@@ -45,7 +45,7 @@ Google Fonts are optional; system fonts provide an offline fallback. Notes are n
 
 ## NeetCode content and validation
 
-Approach explanations and Python implementations are adapted from the MIT-licensed neetcode-gh/leetcode repository, pinned to commit `9f104d45b1efc8c2e42b6dcc7b1216cdf8c4f80e`. The full license is distributed in `dist/licenses/neetcode.txt`, and every lesson links to its source. Problem paraphrases, topic guides, and visualizations were authored for this project.
+Approach explanations and Python implementations are adapted from the MIT-licensed neetcode-gh/leetcode repository, pinned to commit `9f104d45b1efc8c2e42b6dcc7b1216cdf8c4f80e`. The full license is distributed in `dist/licenses/neetcode.txt`, and every lesson links to its source. Problem paraphrases, topic guides, and visualizations were authored for this project. Thirteen approach tabs whose upstream article ships code and complexity but no prose take their intuition and algorithm text from `neetcode_prose.py`, which is also original to this project; every approach tab now carries an explanation.
 
 Run `python build_neetcode.py --build` to validate the 510 approach examples and regenerate the data from the cached licensed articles. `npm run check` checks JavaScript syntax and renders all 1,030 lesson sections and 15,623 animation states in an isolated test environment. Example validation is not an exhaustive proof for arbitrary inputs.
 
