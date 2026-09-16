@@ -5,6 +5,6 @@
   "description": "Visual Python companion for NeetCode 150 and Striver DP",
   "scripts": {
     "start": "node server.cjs",
-    "check": "node --check dist/app.js && node --check dist/studio.js && node --check dist/topics.js && node --check dist/neetcode.js && node --check dist/curriculum.js && node --check server.cjs && node validate_ui.cjs"
+    "check": "node --check dist/app.js && node --check dist/stories.js && node --check dist/studio.js && node --check dist/topics.js && node --check dist/neetcode.js && node --check dist/curriculum.js && node --check server.cjs && node validate_ui.cjs"
   }
 }

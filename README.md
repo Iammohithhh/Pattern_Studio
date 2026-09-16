@@ -50,3 +50,9 @@ Approach explanations and Python implementations are adapted from the MIT-licens
 Run `python build_neetcode.py --build` to validate the 510 approach examples and regenerate the data from the cached licensed articles. `npm run check` checks JavaScript syntax and renders all 1,030 lesson sections and 15,623 animation states in an isolated test environment. Example validation is not an exhaustive proof for arbitrary inputs.
 
 Visual labs replay the recommended implementation on the included example; they do not run user-supplied Python. Node and interval problems use the practice platform’s supplied data classes. Some diagrams summarize the input while the live-variable panel shows the execution state. Large objects are compacted for readability.
+
+## Guided visual stories
+
+The visual lab offers an authored story mode for 13 algorithms (16 lessons across both tracks): Contains Duplicate, Two Sum, Binary Search, Container With Most Water, Longest Substring Without Repeating Characters, Valid Parentheses, Reverse Linked List, Number of Islands, Climbing Stairs, Unique Paths, House Robber, Coin Change, and LIS. These 108 conceptual scenes are computed from the lesson examples and checked against their verified results. They explain each decision, the correctness invariant, and a Python concept sketch, then end with a recall checkpoint. They are conceptual walkthroughs, not a line-for-line replay of every recommended implementation.
+
+The diagrams use lightweight CSS perspective with a flat-view toggle, reduced-motion support, accessible scene controls, three playback speeds, and no graphics libraries or API keys. All other lessons retain their detailed Python/state trace, now with state-change narration. `npm run check` also renders every story scene and checks its result.
