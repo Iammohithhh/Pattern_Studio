@@ -55,4 +55,14 @@ Visual labs replay the recommended implementation on the included example; they 
 
 The visual lab offers an authored story mode for 13 algorithms (16 lessons across both tracks): Contains Duplicate, Two Sum, Binary Search, Container With Most Water, Longest Substring Without Repeating Characters, Valid Parentheses, Reverse Linked List, Number of Islands, Climbing Stairs, Unique Paths, House Robber, Coin Change, and LIS. These 108 conceptual scenes are computed from the lesson examples and checked against their verified results. They explain each decision, the correctness invariant, and a Python concept sketch, then end with a recall checkpoint. They are conceptual walkthroughs, not a line-for-line replay of every recommended implementation.
 
-The diagrams use lightweight CSS perspective with a flat-view toggle, reduced-motion support, accessible scene controls, three playback speeds, and no graphics libraries or API keys. All other lessons retain their detailed Python/state trace, now with state-change narration. `npm run check` also renders every story scene and checks its result.
+The earlier story diagrams use lightweight CSS perspective with a flat-view toggle. They remain available through “Open earlier 2D walkthrough.” `npm run check` also renders every story scene and checks its result.
+
+## 3D classrooms
+
+All 206 lessons now open in a WebGL classroom with retained, animated objects, orbit/top/front cameras, a Python snippet on the stage, live state values, and narration. The interface has a new learning dashboard, navy navigation, clearer reading surfaces, and a responsive classroom. Every lesson includes its solution plan and recall prompt alongside the visualization.
+
+The scene adapters cover indexed sequences, stacks, binary heaps, grids, graph topology, live linked nodes and trees, intervals, bit registers, and DP dependency graphs. Height problems use proportional walls; Container With Most Water adds a translucent area model. Selected checkpoints keep long examples manageable; “Every Python step” exposes the entire recorded trace. These are data-driven algorithm walkthroughs, not 206 individually produced cinematic films. Compact traces may omit deep references; scene captions disclose limits and never invent missing links.
+
+Three.js 0.186.0 and OrbitControls are vendored locally under their MIT license (`dist/vendor/THREE-LICENSE.txt`), so no CDN or API key is needed. A compatible WebGL2 browser provides the 3D view. Code, narration, solution plans, and a text description remain available when WebGL is unavailable. Reduced-motion preferences disable object easing. The renderer releases its GPU resources when leaving the classroom.
+
+`npm run check` validates all 15,623 scene descriptors for nonempty content, unique object IDs, finite coordinates, and correct final checkpoints, in addition to existing lesson and story checks.

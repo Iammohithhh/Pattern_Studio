@@ -32,8 +32,10 @@
      for(const [id,n]of seen)for(const k of ['left','right','next','random'])if(n[k]?.identity&&seen.has(n[k].identity))link('node'+id,'node'+n[k].identity,k);
      notes.push('Node identity is preserved. Deep objects are compacted in the recorded trace; missing links are not invented.');extent=16;
     }else{
+     const heap=Object.entries({...v.self?.fields,...v}).find(([k,a])=>/heap|^minH$|^maxH$/i.test(k)&&Array.isArray(a));
      const matrix=Object.entries({...p.example,...v}).find(([k,a])=>['grid','board','matrix','heights','dp','memo','table'].includes(k)&&Array.isArray(a)&&Array.isArray(a[0]));
-     if([11,42,84].includes(p.number)&&Array.isArray(p.example.height||p.example.heights)){
+     if(heap&&p.category==='Heap / Priority Queue'){representation='Binary heap';const [name,a]=heap;const count=Math.min(a.length,15);a.slice(0,count).forEach((value,i)=>{const level=Math.floor(Math.log2(i+1)),start=2**level-1,width=2**level;put('heap'+i,value,(i-start-(width-1)/2)*8/width,.6,level*1.8-2,i===0?'current':'memory','sphere',name+'['+i+']');if(i)link('heap'+Math.floor((i-1)/2),'heap'+i);});if(!count)put('emptyHeap','empty',0,.5,0,'memory','box',name);notes.push('Parent i has children 2i + 1 and 2i + 2. Values are the actual stored heap entries, including any negative priorities. Showing at most 15 entries.');
+     }else if([11,42,84].includes(p.number)&&Array.isArray(p.example.height||p.example.heights)){
       representation='Height landscape';const heights=p.example.height||p.example.heights,scale=4/Math.max(1,...heights),offset=(heights.length-1)/2;
       heights.forEach((h,i)=>put('height'+i,h,(i-offset)*1.15,Math.max(.12,h*scale)/2,0,[v.l,v.r,v.left,v.right,v.i].includes(i)?'current':'input','box','index '+i,{x:.65,y:Math.max(.12,h*scale),z:1.1}));
       const l=v.l??v.left,r=v.r??v.right;
