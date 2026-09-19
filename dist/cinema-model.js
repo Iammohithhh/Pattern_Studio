@@ -1,0 +1,69 @@
+/* Pure adapters: verified algorithm states become inspectable scene objects. */
+(function(root){
+ const colors={current:'#e4f59c',resolved:'#9990ed',input:'#74b5ce',memory:'#d7a36d',muted:'#708291'};
+ const show=v=>v===null?'None':typeof v==='boolean'?(v?'True':'False'):typeof v==='object'?Array.isArray(v)?'['+v.map(x=>typeof x==='object'?'…':x).join(', ')+']':v?.kind==='node'?'node '+v.value:v?.kind==='ref'?'node '+v.value:JSON.stringify(v):String(v);
+ const compact=v=>{let s=v?.kind==='map'?'{'+v.entries.map(([k,val])=>k+': '+show(val)).join(', ')+'}':v?.kind==='set'?'{'+v.items.map(show).join(', ')+'}':v?.kind==='object'?'object with '+Object.keys(v.fields||{}).join(', '):show(v);return s.length>75?s.slice(0,72)+'…':s;};
+ const isScalar=v=>v===null||['string','number','boolean'].includes(typeof v);
+ function frames(p,semantic=true){if(!semantic||p.track==='dp')return p.trace.map((_,i)=>i);let out=[0],prior=p.trace[0];for(let i=1;i<p.trace.length;i++){const e=p.trace[i];if(e.event==='return'||e.function!==prior.function||Object.entries(e.variables).some(([k,v])=>k!=='self'&&JSON.stringify(v)!==JSON.stringify(prior.variables[k]))){out.push(i);prior=e;}}if(out.at(-1)!==p.trace.length-1)out.push(p.trace.length-1);return out;}
+ function frame(p,index){
+  index=Math.max(0,Math.min(index,p.trace.length-1));const e=p.trace[index],v=e.variables||{},before=p.trace[index-1]?.variables||{},objects=[],links=[],notes=[];
+  let extent=10,representation='',code='',line=0,title='',explanation='';
+  const put=(id,value,x,y,z,role='input',type='box',label='',size)=>{objects.push({id:String(id),value:compact(value),x,y,z,role,type,label,color:colors[role]||colors.input,size});};
+  const link=(from,to,label='')=>links.push({from:String(from),to:String(to),label});
+  const arr=(key,a,x=0,z=0,stack=false)=>{if(!a.length){put(key+'empty','empty',x,.25,z,'muted','box',key);return;}const shown=a.slice(0,18);if(a.length>18)notes.push(key+': showing 18 of '+a.length+' entries');const width=Math.min(9,shown.length);extent=Math.max(extent,width*1.3);shown.forEach((val,i)=>{const ptr=Object.entries(v).filter(([k,n])=>['i','j','l','r','left','right','mid','start','end','idx','index'].includes(k)&&n===i).map(([k])=>k);let changed=Array.isArray(before[key])&&JSON.stringify(before[key][i])!==JSON.stringify(val);const role=ptr.length?'current':changed?'resolved':key in p.example?'input':'memory';put(key+':'+i,val,x+(stack?0:(i%9-(width-1)/2)*1.3),stack?.4+i*.65:.35,z+(stack?0:Math.floor(i/9)*1.8),role,'box',ptr.length?ptr.join(' / '):key+'['+i+']');});};
+  if(p.track==='dp'){
+   representation='Dependency graph';const deps=e.deps||[];put('state',e.value,0,.7,0,'current','box','f('+e.key.join(', ')+')');deps.slice(0,9).forEach((d,i)=>{const x=(i-(Math.min(9,deps.length)-1)/2)*1.5;put('dep'+i,d.value,x,.4,3,'resolved','box','f('+d.key.join(', ')+')');link('dep'+i,'state');});
+   p.trace.slice(Math.max(0,index-8),index).forEach((s,i)=>put('cache'+JSON.stringify(s.key),s.value,(i-3.5)*1.2,.2,-3,'memory','box',s.key.join(',')));
+   code=p.recurrence||p.codes[1];title=deps.length?'Combine the smaller answers':'Resolve a boundary state';explanation=deps.length?`State f(${e.key.join(', ')}) reads ${deps.length} resolved ${deps.length===1?'dependency':'dependencies'} and returns ${show(e.value)}. Follow each arrow from an available answer into the current state.`:`State f(${e.key.join(', ')}) needs no smaller calls. Its base value is ${show(e.value)}.`;
+   notes.push('Current state and dependencies are exact. The rear row shows up to eight recently resolved states.');
+  }else{
+   const lines=p.approaches[p.recommended].code.split('\n');line=e.line;code=lines.slice(Math.max(0,line-3),Math.min(lines.length,line+2)).join('\n');
+   const changed=Object.entries(v).filter(([k,val])=>k!=='self'&&JSON.stringify(val)!==JSON.stringify(before[k]));const sourceLine=lines[line-1]?.trim()||'';
+   title=e.event==='return'?'Return an answer':sourceLine.startsWith('if ')||sourceLine.startsWith('elif ')?'Make the next decision':sourceLine.startsWith('for ')||sourceLine.startsWith('while ')?'Advance through the candidates':sourceLine.includes('append(')||sourceLine.includes('.add(')?'Remember this information':sourceLine.includes('pop(')||sourceLine.includes('popleft(')?'Take an item from the frontier':'Transform the working state';
+   explanation=e.event==='return'?`${e.function} returns ${compact(v.return)}. ${e.stack.length>1?'This is a helper result; its caller may still have work left.':'Compare this answer with the example output.'}`:index===0?`Begin ${e.function} with the example inputs. The highlighted line is about to execute. ${p.cue}`:changed.length?changed.slice(0,4).map(([k,val])=>`${k} ${k in before?'changes from '+compact(before[k])+' to':'starts as'} ${compact(val)}`).join('. ')+'. The highlighted line is the next action.':`No displayed local value changed at this boundary. Read the condition or call on line ${line} before advancing.`;
+   if(p.category==='Bit Manipulation'){
+    representation='Binary registers';const regs=Object.entries(v).filter(([k,n])=>Number.isInteger(n)&&['n','a','b','res','result','carry','mask','xor'].includes(k)).slice(0,3);if(!regs.length)regs.push(...Object.entries(p.example).filter(([,n])=>Number.isInteger(n)).slice(0,2));regs.forEach(([k,n],r)=>{const bits=(n>>>0).toString(2).padStart(32,'0');bits.split('').forEach((bit,i)=>put(k+i,bit,(i%16-7.5)*.63,.25+Number(bit)*.22,r*3+Math.floor(i/16)*1.25,bit==='1'?'current':'muted','box',i===0?k:31-i,{x:.52,y:.4,z:.6}));});notes.push('32-bit display. Negative values are shown in two’s complement; Python values remain in the state panel.');
+   }else{
+    const nodes=Object.entries(v).filter(([,x])=>x?.kind==='node');
+    if(nodes.length&&(p.runner==='linked'||p.runner==='random-list'||p.runner==='cycle'||p.runner==='tree'||p.runner==='tree-codec')){
+     representation=p.runner.startsWith('tree')?'Live tree references':'Live node references';const seen=new Map(),positions=new Map();
+     const visit=(n,x,z,depth=0)=>{if(n?.kind!=='node'||seen.has(n.identity)||seen.size>=28)return;seen.set(n.identity,n);positions.set(n.identity,[x,z]);if(depth<5){if(n.left?.kind==='node')visit(n.left,x-2.5/Math.max(1,depth+1),z+2,depth+1);if(n.right?.kind==='node')visit(n.right,x+2.5/Math.max(1,depth+1),z+2,depth+1);if(n.next?.kind==='node')visit(n.next,x+1.6,z,depth+1);}};
+     nodes.forEach(([k,n],i)=>visit(n,-4,i*2.7));for(const [id,n]of seen){const [x,z]=positions.get(id);const names=nodes.filter(([,n])=>n.identity===id).map(([k])=>k);put('node'+id,n.value,x,.6,z,names.length?'current':'input','sphere',names.join(' / ')||'node');}
+     for(const [id,n]of seen)for(const k of ['left','right','next','random'])if(n[k]?.identity&&seen.has(n[k].identity))link('node'+id,'node'+n[k].identity,k);
+     notes.push('Node identity is preserved. Deep objects are compacted in the recorded trace; missing links are not invented.');extent=16;
+    }else{
+     const matrix=Object.entries({...p.example,...v}).find(([k,a])=>['grid','board','matrix','heights','dp','memo','table'].includes(k)&&Array.isArray(a)&&Array.isArray(a[0]));
+     if([11,42,84].includes(p.number)&&Array.isArray(p.example.height||p.example.heights)){
+      representation='Height landscape';const heights=p.example.height||p.example.heights,scale=4/Math.max(1,...heights),offset=(heights.length-1)/2;
+      heights.forEach((h,i)=>put('height'+i,h,(i-offset)*1.15,Math.max(.12,h*scale)/2,0,[v.l,v.r,v.left,v.right,v.i].includes(i)?'current':'input','box','index '+i,{x:.65,y:Math.max(.12,h*scale),z:1.1}));
+      const l=v.l??v.left,r=v.r??v.right;
+      if(p.number===11&&Number.isInteger(l)&&Number.isInteger(r)&&r>l){const height=Math.min(heights[l],heights[r]),width=r-l;put('water',height*width,((l+r)/2-offset)*1.15,height*scale/2,0,'resolved','water','area = '+width+' × '+height,{x:width*1.15,y:Math.max(.01,height*scale),z:1});explanation+=' The translucent container has width '+width+' and water height '+height+'. The shorter wall limits its area to '+width*height+'.';}
+      if(p.number===42&&Number.isInteger(l)&&Number.isInteger(r))notes.push('The walls show input heights. Pointer labels identify the active boundaries; accumulated water remains in the live state panel.');
+      extent=Math.max(10,heights.length*1.15);
+     }else if(matrix){representation='Grid of states';const [k,a]=matrix,rows=a.slice(0,9),cols=Math.min(9,a[0].length);extent=Math.max(10,cols*1.25,rows.length*1.25);rows.forEach((row,r)=>row.slice(0,9).forEach((val,c)=>{const current=(v.r??v.row??v.i)===r&&(v.c??v.col??v.j)===c;const changed=Array.isArray(before[k])&&JSON.stringify(before[k][r]?.[c])!==JSON.stringify(val);put(k+r+','+c,val,(c-(cols-1)/2)*1.15,.2,(r-(rows.length-1)/2)*1.15,current?'current':changed?'resolved':val===0||val==='0'||val==='X'?'muted':'input','box',r+','+c,{x:.95,y:.28,z:.95});}));if(a.length>9||a[0].length>9)notes.push('Showing the first 9 × 9 cells.');
+     }else if(p.example.adjacency||p.example.edges||p.example.prerequisites||p.example.times||p.example.flights){
+      representation='Connected graph';const x=p.example;let edges=[],labels=[];if(x.adjacency){labels=x.adjacency.map((_,i)=>i+1);edges=x.adjacency.flatMap((ns,i)=>ns.filter(n=>n>i+1).map(n=>[i+1,n]));}else if(x.prerequisites){labels=Array.from({length:x.numCourses},(_,i)=>i);edges=x.prerequisites.map(([a,b])=>[b,a]);}else{edges=x.edges||x.times||x.flights;const base=x.times||p.number===684?1:0;labels=Array.from({length:x.n||Math.max(...edges.flatMap(e=>e.slice(0,2)))+1-base},(_,i)=>i+base);}
+      const active=v.node?.value??v.node??v.curr??v.cur??v.src;labels.slice(0,18).forEach((n,i)=>put('vertex'+n,n,4*Math.cos(i*2*Math.PI/labels.length),.6,4*Math.sin(i*2*Math.PI/labels.length),active===n?'current':'input','sphere','vertex '+n));edges.forEach(([a,b,w])=>link('vertex'+a,'vertex'+b,w??''));notes.push('The network shows the example topology; active vertices follow the recorded state.');
+     }else if(p.runner==='tree'||p.runner==='tree-codec'){
+      representation='Tree input';const a=p.example.root||p.example.p||[];let q=[],at=1;if(a.length){q=[{idx:0,x:0,z:-2,d:0}];put('t0',a[0],0,.6,-2,'input','sphere','root');}while(q.length&&at<a.length&&at<25){const n=q.shift();for(const side of [-1,1]){const idx=at++,val=a[idx];if(val===undefined||val===null)continue;const x=n.x+side*2.6/(n.d+1),z=n.z+2;put('t'+idx,val,x,.6,z,'input','sphere');link('t'+n.idx,'t'+idx);q.push({idx,x,z,d:n.d+1});}}notes.push('Input tree; no live node references exist at this checkpoint.');
+     }else if(p.category==='Intervals'&&p.example.intervals){
+      representation='Intervals on one axis';const intervals=Array.isArray(v.intervals)?v.intervals:p.example.intervals;const min=Math.min(...intervals.flat()),max=Math.max(...intervals.flat()),range=Math.max(1,max-min);intervals.slice(0,10).forEach(([a,b],i)=>put('interval'+i,a+' → '+b,((a+b)/2-min)/range*9-4.5,.35,(i-intervals.length/2)*1.2,'input','box','interval '+i,{x:Math.max(.3,(b-a)/range*9),y:.5,z:.55}));
+     }else{
+      const working=Object.entries(v).filter(([k,a])=>Array.isArray(a)&&a.every(isScalar)&&['stack','heap','minHeap','maxHeap','dp','row','prev','cur','tails','res','result','output','path','subset','queue'].includes(k));
+      const primary=Object.entries({...p.example,...v}).find(([k,a])=>k!=='operations'&&Array.isArray(a)&&a.every(isScalar));
+      const str=Object.entries({...p.example,...v}).find(([k,s])=>typeof s==='string'&&['s','t','s1','s2','text1','text2','word'].includes(k));
+      if(primary){representation='Indexed sequence';arr(...primary,0,-1);}else if(str){representation='Characters and positions';arr(str[0],[...str[1]],0,-1);}
+      if(working.length){const [k,a]=working[0];if(!primary||k!==primary[0])arr(k,a,0,3,k==='stack');representation+=k==='stack'?' and stack':' and working memory';}
+      if(!primary&&!str&&!working.length){representation='State objects';const inputs=Object.entries(p.example).filter(([k])=>k!=='operations').slice(0,5);inputs.forEach(([k,val],i)=>put('input'+k,val,(i-(inputs.length-1)/2)*2,.4,0,'input','box',k));}
+     }
+    }
+   }
+   const maps=Object.entries(v).filter(([,val])=>val?.kind==='map'||val?.kind==='set');let memory=maps[0];if(!memory&&v.self?.fields)memory=['object', {kind:'map',entries:Object.entries(v.self.fields)}];
+   if(memory){const [name,m]=memory,items=m.kind==='map'?m.entries.map(([k,val])=>k+' : '+compact(val)):m.items.map(compact);items.slice(0,8).forEach((val,i)=>put('memory'+i,val,(i%4-1.5)*2.2,.5,-5-Math.floor(i/4)*1.5,'memory','box',name,{x:1.9,y:.5,z:.8}));if(items.length>8)notes.push(name+': showing 8 of '+items.length+' entries');}
+   if(!objects.length){put('call',e.function,0,.5,0,'current','box','active call');representation='Call state';}
+  }
+  const metrics=p.track==='dp'?[{key:'state',value:'f('+e.key.join(', ')+')'},{key:'answer',value:show(e.value)}]:Object.entries(v).filter(([k,val])=>k!=='self'&&isScalar(val)).slice(0,8).map(([key,value])=>({key,value:compact(value)}));
+  return {objects,links,extent,representation,title,explanation,code,line,codeStart:Math.max(1,line-2),metrics,notes,rule:p.cue||p.stateMeaning,result:p.track==='dp'?p.expected:p.traceResult,final:index===p.trace.length-1,stack:e.stack||['f('+e.key.join(', ')+')'],index,total:p.trace.length};
+ }
+ root.CinemaModel={frame,frames,compact,colors};
+})(typeof window==='undefined'?globalThis:window);
